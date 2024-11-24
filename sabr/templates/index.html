@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SABR Model Calibrator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>SABR Model Calibrator</h1>
+    
+    <form id="calibrationForm">
+        <div class="form-group">
+            <label for="swaption_data">Swaption Market Data:</label>
+            <input type="file" id="swaption_data" name="swaption_data" accept=".xlsx" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="libor_data">Libor Data:</label>
+            <input type="file" id="libor_data" name="libor_data" accept=".xlsx" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="beta">Beta:</label>
+            <input type="number" id="beta" name="beta" value="0.5" step="0.1">
+        </div>
+        
+        <div class="form-group">
+            <label for="shift">Shift:</label>
+            <input type="number" id="shift" name="shift" value="0.25" step="0.01">
+        </div>
+        
+        <button type="submit">Calibrate</button>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('calibrationForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('swaption_data', document.getElementById('swaption_data').files[0]);
+            formData.append('libor_data', document.getElementById('libor_data').files[0]);
+            formData.append('beta', document.getElementById('beta').value);
+            formData.append('shift', document.getElementById('shift').value);
+            
+            try {
+                const response = await fetch('/api/calibrate', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                const results = document.getElementById('results');
+                results.style.display = 'block';
+                
+                if (data.success) {
+                    results.innerHTML = `
+                        <h3>Results:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    results.innerHTML = `<p style="color: red">Error: ${data.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = 
+                    `<p style="color: red">Error: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html> 
