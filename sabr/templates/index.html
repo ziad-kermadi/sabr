@@ -2,98 +2,409 @@
 <html>
 <head>
     <title>SABR Model Calibrator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #334155;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            position: relative;
         }
+
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
         }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px dashed var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        input[type="file"]:hover {
+            border-color: var(--accent);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--accent);
             color: white;
             border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s;
         }
-        #results {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
+
+        button:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .loading {
             display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--bg-secondary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #results {
+            display: none;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-item {
+            background-color: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .success-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--success);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .error-message {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: var(--error);
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>SABR Model Calibrator</h1>
-    
-    <form id="calibrationForm">
-        <div class="form-group">
-            <label for="swaption_data">Swaption Market Data:</label>
-            <input type="file" id="swaption_data" name="swaption_data" accept=".xlsx" required>
+    <div class="container">
+        <div class="header">
+            <h1>SABR Model Calibrator</h1>
+            <p>Upload market data and calibrate SABR model parameters</p>
         </div>
-        
-        <div class="form-group">
-            <label for="libor_data">Libor Data:</label>
-            <input type="file" id="libor_data" name="libor_data" accept=".xlsx" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="beta">Beta:</label>
-            <input type="number" id="beta" name="beta" value="0.5" step="0.1">
-        </div>
-        
-        <div class="form-group">
-            <label for="shift">Shift:</label>
-            <input type="number" id="shift" name="shift" value="0.25" step="0.01">
-        </div>
-        
-        <button type="submit">Calibrate</button>
-    </form>
 
-    <div id="results"></div>
+        <div class="card">
+            <form id="calibrationForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="swaption_data">Swaption Market Data</label>
+                        <input type="file" id="swaption_data" name="swaption_data" accept=".xlsx" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="libor_data">Libor Data</label>
+                        <input type="file" id="libor_data" name="libor_data" accept=".xlsx" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="beta">Beta</label>
+                        <input type="number" id="beta" name="beta" value="0.5" step="0.1" min="0" max="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shift">Shift</label>
+                        <input type="number" id="shift" name="shift" value="0.25" step="0.01">
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span>Calibrate Model</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Calibrating model parameters...</p>
+        </div>
+
+        <div id="results"></div>
+    </div>
 
     <script>
-        document.getElementById('calibrationForm').onsubmit = async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData();
-            formData.append('swaption_data', document.getElementById('swaption_data').files[0]);
-            formData.append('libor_data', document.getElementById('libor_data').files[0]);
-            formData.append('beta', document.getElementById('beta').value);
-            formData.append('shift', document.getElementById('shift').value);
-            
-            try {
-                const response = await fetch('/api/calibrate', {
-                    method: 'POST',
-                    body: formData
-                });
+        class CalibrationUI {
+            constructor() {
+                this.form = document.getElementById('calibrationForm');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.loadingEl = document.querySelector('.loading');
+                this.resultsEl = document.getElementById('results');
                 
-                const data = await response.json();
-                const results = document.getElementById('results');
-                results.style.display = 'block';
-                
-                if (data.success) {
-                    results.innerHTML = `
-                        <h3>Results:</h3>
-                        <pre>${JSON.stringify(data, null, 2)}</pre>
-                    `;
-                } else {
-                    results.innerHTML = `<p style="color: red">Error: ${data.message}</p>`;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('results').innerHTML = 
-                    `<p style="color: red">Error: ${error.message}</p>`;
+                this.setupEventListeners();
             }
-        };
+
+            setupEventListeners() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // File input styling
+                document.querySelectorAll('input[type="file"]').forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const fileName = e.target.files[0]?.name;
+                        if (fileName) {
+                            e.target.title = fileName;
+                        }
+                    });
+                });
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                this.showLoading();
+                
+                try {
+                    const formData = new FormData(this.form);
+                    const response = await fetch('/api/calibrate', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.displayResults(data);
+                    } else {
+                        this.showError(data.message);
+                    }
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            showLoading() {
+                this.submitBtn.disabled = true;
+                this.loadingEl.style.display = 'block';
+                this.resultsEl.style.display = 'none';
+            }
+
+            hideLoading() {
+                this.submitBtn.disabled = false;
+                this.loadingEl.style.display = 'none';
+            }
+
+            displayResults(data) {
+                const resultsHTML = `
+                    <div class="card">
+                        <h3 style="margin-bottom: 1.5rem; color: var(--accent);">Calibration Results</h3>
+                        
+                        <div class="result-grid">
+                            <div class="result-item">
+                                <div class="result-label">α (alpha)</div>
+                                <div class="result-value">${data.calibrated_parameters.alpha.toFixed(6)}</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">σ (sigma)</div>
+                                <div class="result-value">${data.calibrated_parameters.sigma.toFixed(6)}</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">ρ (rho)</div>
+                                <div class="result-value">${data.calibrated_parameters.rho.toFixed(6)}</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">β (beta)</div>
+                                <div class="result-value">${data.calibrated_parameters.beta.toFixed(6)}</div>
+                            </div>
+                        </div>
+
+                        <div class="result-grid" style="margin-top: 1.5rem;">
+                            <div class="result-item">
+                                <div class="result-label">Optimization Status</div>
+                                <div class="result-value">
+                                    ${data.optimization_success ? 
+                                        '<span class="success-badge">Success</span>' : 
+                                        '<span style="color: var(--error);">Failed</span>'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem;">
+                            <h4 style="color: var(--text-secondary); margin-bottom: 1rem;">Sample Forward Rates</h4>
+                            <div class="result-grid">
+                                ${data.forward_rates.slice(0, 5).map((rate, i) => `
+                                    <div class="result-item">
+                                        <div class="result-label">Rate ${i + 1}</div>
+                                        <div class="result-value">${rate.toFixed(6)}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                this.resultsEl.innerHTML = resultsHTML;
+                this.resultsEl.style.display = 'block';
+            }
+
+            showError(message) {
+                this.resultsEl.innerHTML = `
+                    <div class="error-message">
+                        ${message}
+                    </div>
+                `;
+                this.resultsEl.style.display = 'block';
+            }
+        }
+
+        // Initialize the UI
+        new CalibrationUI();
     </script>
 </body>
 </html> 

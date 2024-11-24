@@ -100,7 +100,7 @@ def calibrate():
             result = model.calibrate(forward_rates, strikes, tenors, market_vols_array)
             
             # Clean up temporary files
-            os.remove(swaption_path
+            os.remove(swaption_path)
             os.remove(libor_path)
             
             return jsonify({
